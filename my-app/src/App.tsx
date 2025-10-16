@@ -1,63 +1,133 @@
-import React from "react";
-import "./App.css";
-import micOff from "./mic-off.png";
+import React, { useState } from 'react';
+import './App.css';
 
-export const App: React.FC = () => {
-  const participants = [
-    { name: "Присяжний Марк Сергійович", initials: "ПС" },
-    { name: "Фатеев Руслан Викторович", initials: "ФВ", selected: true },
-    { name: "Чмель Богдан Артемович", initials: "ЧА" },
-    { name: "Зукуліс Катерина Анатоліївна", initials: "ЗА" },
-    { name: "Цисар Андрій Дмитрович", initials: "ЦД" },
-    { name: "Глоба Яна Вячеславівна", initials: "ГВ" },
-  ];
+interface MoonPhaseResults {
+  ageInDays: string;
+  ageAsPercentage: string;
+  phaseName: string;
+  phaseDescription: string;
+}
 
-  const gradients = [
-    "radial-gradient(circle at center, #1a1a1a, #0c0c0c)",
-    "radial-gradient(circle at center, #1a1a1a, #0c0c0c)",
-    "radial-gradient(circle at top left, #202820, #0e0f0e)",
-    "radial-gradient(circle at bottom left, #281c1c, #0e0d0d)",
-    "radial-gradient(circle at bottom right, #281c1c, #0e0d0d)",
-    "radial-gradient(circle at bottom left, #28251c, #0f0e0b)",
-  ];
+const initialResults: MoonPhaseResults = {
+  ageInDays: '23.67',
+  ageAsPercentage: '39.67%',
+  phaseName: 'Третья четверть',
+  phaseDescription: 'Убывающая луна',
+};
 
-  const circleColors = [
-    { bg: "#B8D9C3", color: "#1E3B23" },
-    { bg: "#C7D2F5", color: "#222E67" },
-    { bg: "#DCE8CC", color: "#2B3B1C" },
-    { bg: "#E9D1D1", color: "#3B1E1E" },
-    { bg: "#EFE2C8", color: "#4B3B1A" },
-    { bg: "#CBE0DD", color: "#193935" },
+function App() {
+  const [day, setDay] = useState<number>(18);
+  const [month, setMonth] = useState<number>(2);
+  const [year, setYear] = useState<number>(2007);
+  const [precision, setPrecision] = useState<number>(10);
+  const [results, setResults] = useState<MoonPhaseResults>(initialResults);
+  const [isAnimating, setIsAnimating] = useState<boolean>(false);
+
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+  const months = [
+    'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+    'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
   ];
+  const years = Array.from({ length: 51 }, (_, i) => 2025 - i);
+
+  const handleCalculate = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    setIsAnimating(true);
+    setTimeout(() => setIsAnimating(false), 500);
+  };
 
   return (
-    <div className="grid">
-      {participants.map((p, i) => (
-        <div
-          key={i}
-          className={`cell ${p.selected ? "selected" : ""}`}
-          style={{ background: gradients[i] }}
-        >
-          <div
-            className="initials"
-            style={{
-              backgroundColor: circleColors[i].bg,
-              color: circleColors[i].color,
-            }}
-          >
-            {p.initials}
+    <div className="app-container">
+      <div className="calculator-wrapper">
+        <div className="calculator-container">
+          <div className="header-container">
+            <div className="header-icon-background">
+              <img src="https://planetcalc.ru/img/32x32i.png" alt="Moon phase icon" className="header-icon" />
+            </div>
+            <h2 className="calculator-header">Фаза луны</h2>
           </div>
 
-          <div className="name-bar">
-            <span>{p.name}</span>
-            {!p.selected && (
-              <img src={micOff} alt="mic off" className="mic-icon" />
-            )}
+          <form className="calculator-form">
+            <div className="form-inputs">
+              <div className="date-selector">
+                <label>Григорианская дата</label>
+                <div className="date-dropdowns">
+                  <select value={day} onChange={(e) => setDay(Number(e.target.value))}>
+                    {days.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                  <select value={month} onChange={(e) => setMonth(Number(e.target.value))}>
+                    {months.map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
+                  </select>
+                  <select value={year} onChange={(e) => setYear(Number(e.target.value))}>
+                    {years.map(y => <option key={y} value={y}>{y}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="precision-slider">
+                <label>Точность вычисления</label>
+                <label className="precision-value">Знаков после запятой: {precision}</label>
+                <input
+                  type="range"
+                  min="1"
+                  max="20"
+                  value={precision}
+                  onChange={(e) => setPrecision(Number(e.target.value))}
+                />
+              </div>
+            </div>
+            
+            <button
+              type="submit"
+              className={`calculate-btn ${isAnimating ? 'animate' : ''}`}
+              onClick={handleCalculate}
+            >
+              РАССЧИТАТЬ
+            </button>
+          </form>
+
+          <div className="results-section">
+            <div className="results-grid">
+              <div className="result-group">
+                <div className="result-item">
+                  <span className="result-label">Возраст луны (дней)</span>
+                  <span className="result-value">{results.ageInDays}</span>
+                </div>
+                <div className="main-result">
+                  <span className="result-label">Направление</span>
+                  <span className="result-value-large">{results.phaseDescription}</span>
+                </div>
+              </div>
+
+              <div className="result-item">
+                <span className="result-label">Возраст луны (процентах от полной)</span>
+                <span className="result-value">{results.ageAsPercentage}</span>
+              </div>
+              <div className="result-item">
+                <span className="result-label">Фаза луны</span>
+                <span className="result-value">{results.phaseName}</span>
+              </div>
+            </div>
+
+            <div className="action-icons-container">
+               <div className="action-item">
+                <img src="/Frame 1.svg" alt="Link icon" className="action-icon" />
+                <span>ССЫЛКА</span>
+              </div>
+               <div className="action-item">
+                <img src="/Frame 2.svg" alt="Save icon" className="action-icon" />
+                <span>СОХРАНИТЬ</span>
+              </div>
+               <div className="action-item">
+                <img src="/Frame 3.svg" alt="Widget icon" className="action-icon" />
+                <span>ВИДЖЕТ</span>
+              </div>
+            </div>
           </div>
         </div>
-      ))}
+      </div>
     </div>
   );
-};
+}
 
 export default App;
