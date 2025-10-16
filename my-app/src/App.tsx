@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import SunCalc from 'suncalc'; 
 import './App.css';
 
 interface MoonPhaseResults {
@@ -8,11 +9,15 @@ interface MoonPhaseResults {
   phaseDescription: string;
 }
 
-const initialResults: MoonPhaseResults = {
-  ageInDays: '23.67',
-  ageAsPercentage: '39.67%',
-  phaseName: 'Третья четверть',
-  phaseDescription: 'Убывающая луна',
+const getPhaseName = (phase: number): { name: string, direction: string } => {
+  if (phase === 0) return { name: "Новолуние", direction: "Растущая луна" };
+  if (phase > 0 && phase < 0.25) return { name: "Молодая луна", direction: "Растущая луна" };
+  if (phase === 0.25) return { name: "Первая четверть", direction: "Растущая луна" };
+  if (phase > 0.25 && phase < 0.5) return { name: "Прибывающая луна", direction: "Растущая луна" };
+  if (phase === 0.5) return { name: "Полнолуние", direction: "Убывающая луна" };
+  if (phase > 0.5 && phase < 0.75) return { name: "Убывающая луна", direction: "Убывающая луна" };
+  if (phase === 0.75) return { name: "Последняя четверть", direction: "Убывающая луна" };
+  return { name: "Старая луна", direction: "Убывающая луна" };
 };
 
 function App() {
@@ -20,20 +25,42 @@ function App() {
   const [month, setMonth] = useState<number>(2);
   const [year, setYear] = useState<number>(2007);
   const [precision, setPrecision] = useState<number>(10);
-  const [results, setResults] = useState<MoonPhaseResults>(initialResults);
+  const [results, setResults] = useState<MoonPhaseResults>({ ageInDays: '', ageAsPercentage: '', phaseName: '', phaseDescription: '' });
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
+  const [resultsVisible, setResultsVisible] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
-  const months = [
-    'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-    'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
-  ];
+  const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
   const years = Array.from({ length: 51 }, (_, i) => 2025 - i);
 
   const handleCalculate = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 500);
+
+    setResultsVisible(false);
+    setLoading(true);
+
+    setTimeout(() => {
+      const selectedDate = new Date(year, month - 1, day);
+
+      const moonInfo = SunCalc.getMoonIllumination(selectedDate);
+      const moonPhaseDetails = getPhaseName(moonInfo.phase);
+      
+      const moonAge = (moonInfo.phase * 29.53).toFixed(precision > 20 ? 20 : precision);
+      const moonPercentage = (moonInfo.fraction * 100).toFixed(precision > 20 ? 20 : precision);
+
+      setResults({
+        ageInDays: moonAge,
+        ageAsPercentage: `${moonPercentage}%`,
+        phaseName: moonPhaseDetails.name,
+        phaseDescription: moonPhaseDetails.direction,
+      });
+
+      setLoading(false);
+      setResultsVisible(true);
+    }, 1500);
   };
 
   return (
@@ -86,43 +113,53 @@ function App() {
             </button>
           </form>
 
-          <div className="results-section">
-            <div className="results-grid">
-              <div className="result-group">
-                <div className="result-item">
-                  <span className="result-label">Возраст луны (дней)</span>
-                  <span className="result-value">{results.ageInDays}</span>
-                </div>
-                <div className="main-result">
-                  <span className="result-label">Направление</span>
-                  <span className="result-value-large">{results.phaseDescription}</span>
-                </div>
+          <div className="calculation-output">
+            {loading && (
+              <div className="loading-bar-container">
+                <div className="loading-bar"></div>
               </div>
+            )}
 
-              <div className="result-item">
-                <span className="result-label">Возраст луны (процентах от полной)</span>
-                <span className="result-value">{results.ageAsPercentage}</span>
-              </div>
-              <div className="result-item">
-                <span className="result-label">Фаза луны</span>
-                <span className="result-value">{results.phaseName}</span>
-              </div>
-            </div>
+            {resultsVisible && (
+              <div className={`results-section ${resultsVisible ? 'visible' : 'hidden'}`}>
+                <div className="results-grid">
+                  <div className="result-group">
+                    <div className="result-item">
+                      <span className="result-label">Возраст луны (дней)</span>
+                      <span className="result-value">{results.ageInDays}</span>
+                    </div>
+                    <div className="main-result">
+                      <span className="result-label">Направление</span>
+                      <span className="result-value-large">{results.phaseDescription}</span>
+                    </div>
+                  </div>
 
-            <div className="action-icons-container">
-               <div className="action-item">
-                <img src="/Frame 1.svg" alt="Link icon" className="action-icon" />
-                <span>ССЫЛКА</span>
+                  <div className="result-item">
+                    <span className="result-label">Возраст луны (процентах от полной)</span>
+                    <span className="result-value">{results.ageAsPercentage}</span>
+                  </div>
+                  <div className="result-item">
+                    <span className="result-label">Фаза луны</span>
+                    <span className="result-value">{results.phaseName}</span>
+                  </div>
+                </div>
+
+                <div className="action-icons-container">
+                   <div className="action-item">
+                    <img src="/Frame 1.svg" alt="Link icon" className="action-icon" />
+                    <span>ССЫЛКА</span>
+                  </div>
+                   <div className="action-item">
+                    <img src="/Frame 2.svg" alt="Save icon" className="action-icon" />
+                    <span>СОХРАНИТЬ</span>
+                  </div>
+                   <div className="action-item">
+                    <img src="/Frame 3.svg" alt="Widget icon" className="action-icon" />
+                    <span>ВИДЖЕТ</span>
+                  </div>
+                </div>
               </div>
-               <div className="action-item">
-                <img src="/Frame 2.svg" alt="Save icon" className="action-icon" />
-                <span>СОХРАНИТЬ</span>
-              </div>
-               <div className="action-item">
-                <img src="/Frame 3.svg" alt="Widget icon" className="action-icon" />
-                <span>ВИДЖЕТ</span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
