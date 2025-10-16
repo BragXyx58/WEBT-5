@@ -1,0 +1,89 @@
+body {
+  margin: 0;
+  background-color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 8px;
+  width: 1100px;
+  height: 450px;
+  background-color: #000;
+}
+
+.cell {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 16px;
+  border: 1px solid rgba(60, 60, 60, 0.7);
+}
+
+.cell.selected {
+  border: 2px solid #7f85f5;
+}
+
+.name-bar {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background-color: #000;
+  color: white;
+  font-size: 14px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mic-icon {
+  width: 14px;
+  height: 14px;
+  filter: invert(1);
+  opacity: 0.9;
+}
+
+.initials {
+  position: relative;
+  overflow: hidden;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  font-size: 36px;
+  color: #fff;
+  z-index: 1;
+}
+
+.initials::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, transparent 0%, #000000 100%);
+  transform: scale(1.4); 
+  opacity: 0; 
+  transition: transform 0.9s ease-in-out, opacity 0.6s ease-in-out;
+  z-index: 0;
+}
+
+.initials:hover::after {
+  transform: scale(1);
+  opacity: 1;
+}
