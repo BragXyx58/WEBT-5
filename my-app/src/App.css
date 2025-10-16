@@ -108,8 +108,8 @@ select:focus {
 }
 
 .precision-value {
-  font-size: 12px;
-  color: #777;
+  font-size: 18px;
+  color: #000000;
 }
 
 input[type="range"] {
